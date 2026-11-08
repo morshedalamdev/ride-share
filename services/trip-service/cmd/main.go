@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	"github.com/morshedalamdev/ride-share/services/trip-service/internal/domain"
 	"github.com/morshedalamdev/ride-share/services/trip-service/internal/infrastructure/repository"
@@ -16,5 +17,10 @@ func main() {
 
 	inmemRepo := repository.NewInmemRepo()
 	svc := service.NewService(inmemRepo)
-	svc.CreateTrip(ctx, fare)
+	t, err := svc.CreateTrip(ctx, fare)
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Printf("Trip created: %+v\n", t)
 }
