@@ -1,0 +1,245 @@
+.ride-map {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #dedfd7;
+  border-radius: 18px;
+  background: #eae9e1;
+  color: #29332e;
+}
+
+.map-drawing {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.map-drawing:active {
+  cursor: grabbing;
+}
+
+.map-preview-tag,
+.map-controls,
+.map-caption {
+  position: absolute;
+  z-index: 3;
+}
+
+.map-preview-tag,
+.map-zoom,
+.map-recenter {
+  background: #fffefa;
+  border: 1px solid #dcded6;
+  box-shadow: 0 2px 8px #303a2c10;
+}
+
+.map-preview-tag {
+  top: 16px;
+  left: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.map-preview-tag svg {
+  color: #d75833;
+}
+
+.map-stop {
+  position: absolute;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.map-stop-point {
+  position: absolute;
+  width: 17px;
+  height: 17px;
+  transform: translate(-50%, -50%);
+  border: 3px solid white;
+  border-radius: 5px;
+  outline: 1px solid #d16945;
+  background-color: #eb613b;
+  box-shadow: 0 1px 6px #5b3a2633;
+}
+
+.map-stop[data-pickup="true"] .map-stop-point {
+  border-radius: 50%;
+  outline-color: #475149;
+  background-color: #303b34;
+}
+
+.map-stop-label {
+  position: absolute;
+  bottom: 15px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 165px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid #fff;
+  border-radius: 6px;
+  background: #fffefa;
+  padding: 5px 8px;
+  box-shadow: 0 2px 7px #30372a23;
+  color: #343b35;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.map-stop[data-pickup="true"] .map-stop-label {
+  border-color: #344038;
+  background: #303a34;
+  color: #fff;
+}
+
+.map-stop[data-below="true"] .map-stop-label {
+  top: 15px;
+  bottom: auto;
+}
+.map-stop[data-align="left"] .map-stop-label {
+  transform: translateX(-12px);
+}
+.map-stop[data-align="right"] .map-stop-label {
+  right: -12px;
+  transform: none;
+}
+
+.map-landmark {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.map-landmark svg {
+  width: 19px;
+  height: 19px;
+  padding: 3px;
+  border: 1px solid #d4d8cd;
+  border-radius: 50%;
+  background: #f7f7f0;
+  color: #7a8374;
+}
+
+.map-landmark:hover svg,
+.map-landmark:focus-visible svg {
+  background: #fff;
+  color: #c34d2a;
+  border-color: #d98a6c;
+}
+
+.map-controls {
+  right: 15px;
+  bottom: 16px;
+  display: grid;
+  gap: 7px;
+}
+
+.map-zoom {
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.map-control {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  background-color: #fffefa;
+  color: #334139;
+  cursor: pointer;
+}
+
+.map-control:not(:disabled):hover {
+  background-color: #f2f3ec;
+}
+.map-control:disabled {
+  color: #9b9e94;
+  cursor: default;
+}
+.map-control:focus-visible {
+  outline: 2px solid #cf5733;
+  outline-offset: -3px;
+}
+.map-control + .map-control {
+  border-top: 1px solid #e1e3da;
+}
+.map-recenter {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+}
+
+.map-caption {
+  bottom: 12px;
+  left: 15px;
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  color: #586254;
+  font-size: 8px;
+  font-weight: 550;
+  text-shadow: 0 1px 2px #fff;
+  pointer-events: none;
+}
+
+.map-scale {
+  min-width: 21px;
+  padding-bottom: 1px;
+  border-bottom: 1.5px solid #687164;
+  text-align: center;
+}
+
+.map-scale::before,
+.map-scale::after {
+  position: absolute;
+  bottom: 0;
+  height: 4px;
+  content: "";
+  border-left: 1.5px solid #687164;
+}
+
+.map-scale {
+  position: relative;
+}
+.map-scale::before {
+  left: 0;
+}
+.map-scale::after {
+  right: 0;
+}
+
+@media (max-width: 560px) {
+  .map-preview-tag {
+    top: 12px;
+    left: 12px;
+  }
+  .map-controls {
+    right: 12px;
+    bottom: 12px;
+  }
+}

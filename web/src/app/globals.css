@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", Inter, system-ui, sans-serif;
+  --color-ink: #212623;
+  --color-muted: #626862;
+  --color-accent: #e65734;
+  --color-canvas: #f7f7f3;
+  --color-line: #dedfd8;
+  --color-peach: #fff1e9;
+}
+
+:root {
+  color-scheme: light;
+}
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+button:not(:disabled),
+summary {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+button,
+a,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+:focus-visible {
+  outline: 3px solid #b94326;
+  outline-offset: 3px;
+}
+::selection {
+  background: #ffd4be;
+  color: #262921;
+}
+
+@layer components {
+  .page-width {
+    width: min(100% - clamp(32px, 7.5vw, 112px), 1400px);
+    margin-inline: auto;
+  }
+  .brand-wordmark {
+    font-size: 37px;
+    line-height: 1;
+    font-weight: 760;
+    letter-spacing: -0.09em;
+  }
+  .nav-link {
+    @apply inline-flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-muted transition-colors hover:bg-canvas hover:text-ink;
+  }
+  .nav-link-active {
+    @apply bg-peach text-[#ae3c20] hover:bg-peach hover:text-[#ae3c20];
+  }
+  .role-link {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition-colors;
+  }
+  .panel {
+    @apply rounded-2xl border border-line bg-white;
+  }
+  .section-title {
+    @apply text-[23px] leading-tight font-semibold tracking-[-0.055em];
+  }
+  .eyebrow {
+    @apply text-[10px] font-semibold tracking-[0.12em] uppercase text-muted;
+  }
+  .primary-button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-semibold text-white transition-colors hover:bg-[#cb492a] disabled:opacity-60;
+  }
+  .secondary-button {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas;
+  }
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-60 focus:rounded-lg focus:bg-white focus:p-3;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
