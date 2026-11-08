@@ -49,7 +49,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create an empty README.md file
+	// Create an README.md file
 	readmePath := filepath.Join(basePath, "README.md")
 	readmeContent := fmt.Sprintf(`# %s service
 
