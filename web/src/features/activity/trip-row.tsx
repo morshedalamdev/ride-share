@@ -32,10 +32,16 @@ export function TripRow({ trip, expanded, onToggle, onRebook }: TripRowProps) {
     (vehicle) => vehicle.id === trip.rideClass,
   )?.name;
   const completed = trip.status === "Completed";
+  const canRebook = trip.role === "rider";
+  const desktopColumns = canRebook
+    ? "lg:grid-cols-[44px_minmax(0,1fr)_92px_72px_100px_32px]"
+    : "lg:grid-cols-[44px_minmax(0,1fr)_92px_72px_32px]";
 
   return (
     <li>
-      <div className="grid grid-cols-[36px_minmax(0,1fr)_32px] items-center gap-x-3 gap-y-2.5 px-4 py-4 sm:grid-cols-[44px_minmax(0,1fr)_auto_auto_32px] sm:px-5 lg:grid-cols-[44px_minmax(0,1fr)_92px_72px_100px_32px] lg:gap-x-5 lg:px-6">
+      <div
+        className={`grid grid-cols-[36px_minmax(0,1fr)_32px] items-center gap-x-3 gap-y-2.5 px-4 py-4 sm:grid-cols-[44px_minmax(0,1fr)_auto_auto_32px] sm:px-5 lg:gap-x-5 lg:px-6 ${desktopColumns}`}
+      >
         <span
           aria-hidden="true"
           className="grid size-9 place-items-center rounded-xl bg-[#f0f1eb] text-[#535c50] sm:size-11"
@@ -73,13 +79,15 @@ export function TripRow({ trip, expanded, onToggle, onRebook }: TripRowProps) {
         <strong className="col-start-2 row-start-2 justify-self-end text-sm font-semibold tabular-nums text-[#2b302b] sm:col-auto sm:row-auto sm:justify-self-center">
           {formatMoney(trip.total)}
         </strong>
-        <button
-          type="button"
-          onClick={() => onRebook(trip)}
-          className="hidden min-h-9 items-center justify-center gap-1.5 rounded-lg border border-[#e1e3da] bg-white px-2.5 text-xs font-semibold text-[#454d44] transition-colors hover:bg-[#f4f5f0] lg:inline-flex"
-        >
-          <RotateCcw size={13} aria-hidden="true" /> Book again
-        </button>
+        {canRebook && (
+          <button
+            type="button"
+            onClick={() => onRebook(trip)}
+            className="hidden min-h-9 items-center justify-center gap-1.5 rounded-lg border border-[#e1e3da] bg-white px-2.5 text-xs font-semibold text-[#454d44] transition-colors hover:bg-[#f4f5f0] lg:inline-flex"
+          >
+            <RotateCcw size={13} aria-hidden="true" /> Book again
+          </button>
+        )}
         <button
           type="button"
           onClick={onToggle}
@@ -120,13 +128,15 @@ export function TripRow({ trip, expanded, onToggle, onRebook }: TripRowProps) {
             </dd>
           </div>
         </dl>
-        <button
-          type="button"
-          onClick={() => onRebook(trip)}
-          className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#d8dcd1] bg-white px-3 text-xs font-semibold text-[#454d44] hover:bg-[#f4f5f0] lg:hidden"
-        >
-          <RotateCcw size={13} aria-hidden="true" /> Book again
-        </button>
+        {canRebook && (
+          <button
+            type="button"
+            onClick={() => onRebook(trip)}
+            className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#d8dcd1] bg-white px-3 text-xs font-semibold text-[#454d44] hover:bg-[#f4f5f0] lg:hidden"
+          >
+            <RotateCcw size={13} aria-hidden="true" /> Book again
+          </button>
+        )}
       </div>
     </li>
   );

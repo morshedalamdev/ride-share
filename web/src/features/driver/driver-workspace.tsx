@@ -1,28 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { ArrowRight, CircleCheck, RadioTower, CarFront } from "lucide-react";
 
 import { RideMap } from "@/features/map/ride-map";
-import { estimateFare, estimateRoute } from "@/features/rides/estimate";
-import { places, vehicles } from "@/features/rides/data";
-import type { RideClass, Trip } from "@/features/rides/types";
+import { useDriverSession, type DriverStatus } from "./driver-session";
 import { DriverRequest } from "./driver-request";
 import { VehiclePicker } from "./vehicle-picker";
-
-type DriverStatus =
-  | "offline"
-  | "offer"
-  | "available"
-  | "pickup"
-  | "driving"
-  | "completed";
-
-const riders = [
-  { name: "Jamie Chen", initials: "JC", rating: "4.94" },
-  { name: "Sam Rivera", initials: "SR", rating: "4.97" },
-  { name: "Avery Brooks", initials: "AB", rating: "4.91" },
-];
 
 const headings: Record<DriverStatus, string> = {
   offline: "Go online",
@@ -38,40 +21,22 @@ const actionClass =
 const secondaryClass =
   "min-h-10 w-full rounded-lg border border-[#d9dcd5] px-4 text-sm font-semibold text-[#454c45] transition-colors hover:bg-[#f5f6f2]";
 
-export function DriverWorkspace({
-  onComplete,
-}: {
-  onComplete: (trip: Trip) => void;
-}) {
-  const [status, setStatus] = useState<DriverStatus>("offline");
-  const [rideClass, setRideClass] = useState<RideClass>("sedan");
-  const [requestIndex, setRequestIndex] = useState(0);
-  const vehicle = vehicles.find((option) => option.id === rideClass)!;
-  const pickup = places[requestIndex % places.length];
-  const dropoff = places[(requestIndex + 1) % places.length];
-  const rider = riders[requestIndex % riders.length];
-  const fare = estimateFare(vehicle, estimateRoute(pickup, dropoff).miles);
+export function DriverWorkspace() {
+  const {
+    status,
+    setStatus,
+    vehicle,
+    setRideClass,
+    pickup,
+    dropoff,
+    rider,
+    fare,
+    nextRequest,
+    completeTrip,
+  } = useDriverSession();
+
   const showRequest =
     status === "offer" || status === "pickup" || status === "driving";
-
-  function nextRequest() {
-    setRequestIndex((previous) => previous + 1);
-    setStatus("offer");
-  }
-
-  function completeTrip() {
-    onComplete({
-      id: crypto.randomUUID(),
-      pickup,
-      dropoff,
-      rideClass,
-      total: fare,
-      date: new Date().toISOString(),
-      status: "Completed",
-      role: "driver",
-    });
-    setStatus("completed");
-  }
 
   return (
     <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(310px,360px)_minmax(0,1fr)]">
@@ -107,7 +72,7 @@ export function DriverWorkspace({
             <p className="mb-5 text-sm leading-relaxed text-[#646963]">
               Choose the vehicle you’re driving to receive local demo requests.
             </p>
-            <VehiclePicker selected={rideClass} onSelect={setRideClass} />
+            <VehiclePicker selected={vehicle.id} onSelect={setRideClass} />
             <button
               type="button"
               className={`mt-5 ${actionClass}`}

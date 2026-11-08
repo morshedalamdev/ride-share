@@ -56,7 +56,6 @@ dist-ssr
 
 # Tilt build
 build/
-ref-ui/
 
 # Cursor
 .cursorrules

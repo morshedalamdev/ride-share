@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { ActivitySection } from "@/features/activity/activity-section";
 import { RideMap } from "@/features/map/ride-map";
-import { vehicles } from "@/features/rides/data";
+import { ArrowRight } from "lucide-react";
+import { formatMoney, vehicles } from "@/features/rides/data";
 import { estimateFare, estimateRoute } from "@/features/rides/estimate";
 import { useRideDraft } from "@/features/rides/ride-provider";
 import { useTripHistory } from "@/features/rides/use-trip-history";
@@ -47,6 +48,13 @@ export function RiderDashboard() {
         miles={miles}
         onSelect={(rideClass) => setDraft({ ...draft, rideClass })}
       />
+      <button
+        type="button"
+        onClick={() => setBooking(true)}
+        className="primary-button mt-4 w-full justify-between md:hidden"
+      >
+        Request {vehicle.name} · {formatMoney(fare)} <ArrowRight size={17} />
+      </button>
       <ActivitySection role="rider" compact />
       {booking && (
         <BookingDialog

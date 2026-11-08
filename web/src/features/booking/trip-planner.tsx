@@ -97,12 +97,18 @@ export function TripPlanner({
       </div>
       <button
         type="button"
-        className="primary-button mt-4 w-full justify-between! px-4.5!"
+        className="primary-button mt-4 hidden w-full justify-between px-4.5 md:inline-flex"
         onClick={onRequest}
       >
         Request {vehicle.name}
         <ArrowRight size={17} />
       </button>
+      <a
+        href="#ride-options"
+        className="primary-button mt-4 justify-between px-4.5 md:hidden"
+      >
+        Choose a ride <ArrowRight size={17} />
+      </a>
     </section>
   );
 }

@@ -13,7 +13,7 @@ const navItems = [
 export function AppHeader() {
   const pathname = usePathname();
   const isDriver = pathname.startsWith("/driver");
-  const isActivity = pathname.endsWith("/activity");
+  const isActivity = pathname.split("/").includes("activity");
   const dashboardUrl = isDriver ? "/driver" : "/";
   const activityUrl = isDriver ? "/driver/activity" : "/activity";
 

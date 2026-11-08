@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 
+import { createDemoTrip } from "@/features/rides/create-demo-trip";
 import { vehicles } from "@/features/rides/data";
 import { estimateRoute } from "@/features/rides/estimate";
 import type { RideDraft, Trip } from "@/features/rides/types";
@@ -92,17 +93,7 @@ export function BookingDialog({
   function record(status: Trip["status"]) {
     if (recorded.current) return;
     recorded.current = true;
-    const id =
-      crypto.randomUUID?.() ??
-      `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    onRecord({
-      ...draft,
-      id,
-      total: status === "Canceled" ? 0 : total,
-      status,
-      role: "rider",
-      date: new Date().toISOString(),
-    });
+    onRecord(createDemoTrip(draft, { role: "rider", status, total }));
   }
 
   function cancelRide() {
@@ -129,7 +120,7 @@ export function BookingDialog({
   }
 
   const descriptions = {
-    searching: `Looking for an available ${vehicle.name.toLowerCase()} near ${draft.pickup.name}.`,
+    searching: `Looking for a nearby driver for your ${vehicle.name} ride.`,
     matched: `Meet Jordan at ${draft.pickup.name} in about ${vehicle.minutes} minutes.`,
     riding: `Your trip to ${draft.dropoff.name} takes about ${route.minutes} minutes.`,
     checkout:
