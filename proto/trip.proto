@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package trip.v1;
+option go_package = "github.com/morshedalamdev/ride-share/shared/proto/tripv1";
+
+service TripService {
+  rpc PreviewTrip(PreviewTripRequest) returns (PreviewTripResponse);
+}
+
+message Coordinate {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+message PreviewTripRequest {
+  string user_id = 1;
+  Coordinate pickup = 2;
+  Coordinate destination = 3;
+}
+
+message FareQuote {
+  string ride_class = 1;
+  int64 total_usd_cents = 2;
+  string quote_id = 3;
+}
+
+message PreviewTripResponse {
+  double distance_meters = 1;
+  double duration_seconds = 2;
+  repeated FareQuote quotes = 3;
+}

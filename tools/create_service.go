@@ -38,11 +38,7 @@ func main() {
 
 	// Create a placeholder main.go file
 	mainFilePath := filepath.Join(basePath, "cmd", "main.go")
-	mainFileContent := fmt.Sprintf(`package main
-
-	func main() {
-
-}`, *serviceName)
+	mainFileContent := "package main\n\nfunc main() {}\n"
 
 	if err := os.WriteFile(mainFilePath, []byte(mainFileContent), 0644); err != nil {
 		fmt.Printf("Error creating main.go: %v\n", err)

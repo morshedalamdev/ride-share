@@ -1,26 +1,31 @@
 package main
 
 import (
-	"context"
 	"log"
+	"net"
 
-	"github.com/morshedalamdev/ride-share/services/trip-service/internal/domain"
-	"github.com/morshedalamdev/ride-share/services/trip-service/internal/infrastructure/repository"
+	tripgrpc "github.com/morshedalamdev/ride-share/services/trip-service/internal/infrastructure/grpc"
 	"github.com/morshedalamdev/ride-share/services/trip-service/internal/service"
+	"github.com/morshedalamdev/ride-share/shared/env"
+	"github.com/morshedalamdev/ride-share/shared/proto/tripv1"
+	"google.golang.org/grpc"
 )
 
 func main() {
-	ctx := context.Background()
-	fare := &domain.RideFareModel{
-		UserID: "42",
-	}
-
-	inmemRepo := repository.NewInmemRepo()
-	svc := service.NewService(inmemRepo)
-	t, err := svc.CreateTrip(ctx, fare)
+	addr := env.GetString("TRIP_GRPC_ADDR", "127.0.0.1:50051")
+	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 
-	log.Printf("Trip created: %+v\n", t)
+	server := grpc.NewServer()
+	tripv1.RegisterTripServiceServer(
+		server,
+		tripgrpc.NewServer(service.FixedRouteProvider{}),
+	)
+
+	log.Printf("Trip gRPC server listening on %v", listener.Addr())
+	if err := server.Serve(listener); err != nil {
+		log.Fatal(err)
+	}
 }

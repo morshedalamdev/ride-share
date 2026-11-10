@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: ride-share/api-gateway:dev-1
+          image: ride-share/api-gateway:dev-2
           imagePullPolicy: Never
           ports:
             - name: http
