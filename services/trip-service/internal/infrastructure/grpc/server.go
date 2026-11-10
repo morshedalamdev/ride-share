@@ -58,7 +58,7 @@ func (s *Server) PreviewTrip(ctx context.Context, req *tripv1.PreviewTripRequest
 
 	fares, err := service.CalculateQuotes(route.Distance)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "cloud not price route")
+		return nil, status.Error(codes.Internal, "could not price route")
 	}
 
 	quotes := make([]*tripv1.FareQuote, 0, len(fares))

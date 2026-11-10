@@ -15,8 +15,11 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: ride-share/api-gateway:dev-2
+          image: ride-share/api-gateway:dev-3
           imagePullPolicy: Never
+          env:
+            - name: TRIP_GRPC_TARGET
+              value: "dns:///trip-service:50051"
           ports:
             - name: http
               containerPort: 8080
