@@ -49,7 +49,7 @@ func (p *OSRM) Route(ctx context.Context, pickup, destination types.Coordinate) 
 	}
 
 	if err := json.NewDecoder(io.LimitReader(res.Body, 1<<20)).Decode(&result); err != nil {
-		return types.Route{}, fmt.Errorf("decode OSRM response: %e", err)
+		return types.Route{}, fmt.Errorf("decode OSRM response: %w", err)
 	}
 	if result.Code == "NoRoute" || result.Code == "NoSegment" {
 		return types.Route{}, service.ErrNoRoute

@@ -3,8 +3,8 @@ package domain
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type RideFareModel struct {
-	ID          primitive.ObjectID
-	UserID      string
-	PackageSlug string
-	TotalPrice  float64
+	ID              primitive.ObjectID
+	UserID          string
+	PackageSlug     string
+	TotalPriceCents float64
 }

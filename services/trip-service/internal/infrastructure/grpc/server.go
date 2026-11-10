@@ -56,8 +56,23 @@ func (s *Server) PreviewTrip(ctx context.Context, req *tripv1.PreviewTripRequest
 		return nil, status.Error(codes.Unavailable, "route provider unavailable")
 	}
 
+	fares, err := service.CalculateQuotes(route.Distance)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "cloud not price route")
+	}
+
+	quotes := make([]*tripv1.FareQuote, 0, len(fares))
+	for _, fare := range fares {
+		quotes = append(quotes, &tripv1.FareQuote{
+			RideClass:     fare.RideClass,
+			TotalUsdCents: fare.TotalUSDCents,
+			QuoteId:       fare.ID,
+		})
+	}
+
 	return &tripv1.PreviewTripResponse{
 		DistanceMeters:  route.Distance,
 		DurationSeconds: route.Duration,
+		Quotes:          quotes,
 	}, nil
 }
