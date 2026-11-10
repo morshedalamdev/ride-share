@@ -8,9 +8,9 @@ interface TripPlannerProps {
   onChange: (draft: RideDraft) => void;
   onRequest: () => void;
   vehicle: Vehicle;
-  miles: number;
-  minutes: number;
-  fare: number;
+  miles: number | null;
+  minutes: number | null;
+  fare: number | null;
 }
 
 export function TripPlanner({
@@ -76,19 +76,19 @@ export function TripPlanner({
       <div className="mt-4 mb-5 flex items-center gap-4 text-xs font-medium text-muted">
         <span className="inline-flex items-center gap-1.5">
           <Route size={14} />
-          {miles.toFixed(1)} mi
+          {miles === null ? "—" : `${miles.toFixed(1)} mi`}
         </span>
         <span className="h-3 w-px bg-line" />
         <span className="inline-flex items-center gap-1.5">
           <Clock3 size={14} />
-          {minutes} min trip
+          {minutes === null ? "—" : `${minutes} min trip`}
         </span>
       </div>
       <div className="mt-auto flex items-end justify-between border-t border-line pt-3.5">
         <div>
           <p className="text-xs text-muted">Estimated fare</p>
           <p className="mt-1 text-[27px] leading-none font-semibold tracking-[-0.065em]">
-            {formatMoney(fare)}
+            {fare === null ? "—" : formatMoney(fare)}
           </p>
         </div>
         <span className="pb-0.5 text-xs font-medium text-muted">
@@ -99,6 +99,7 @@ export function TripPlanner({
         type="button"
         className="primary-button mt-4 hidden w-full justify-between px-4.5 md:inline-flex"
         onClick={onRequest}
+        disabled={fare === null}
       >
         Request {vehicle.name}
         <ArrowRight size={17} />

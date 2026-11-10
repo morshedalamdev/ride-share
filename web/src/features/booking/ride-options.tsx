@@ -1,4 +1,4 @@
-import { estimateFare } from "@/features/rides/estimate";
+import type { FareQuote } from "@/features/rides/use-trip-preview";
 import { vehicles } from "@/features/rides/data";
 import type { RideClass } from "@/features/rides/types";
 
@@ -6,11 +6,11 @@ import { RideOptionCard } from "./ride-option-card";
 
 interface RideOptionsProps {
   selected: RideClass;
-  miles: number;
+  quotes: FareQuote[];
   onSelect: (id: RideClass) => void;
 }
 
-export function RideOptions({ selected, miles, onSelect }: RideOptionsProps) {
+export function RideOptions({ selected, quotes, onSelect }: RideOptionsProps) {
   return (
     <section
       id="ride-options"
@@ -32,7 +32,7 @@ export function RideOptions({ selected, miles, onSelect }: RideOptionsProps) {
           <RideOptionCard
             key={vehicle.id}
             vehicle={vehicle}
-            fare={estimateFare(vehicle, miles)}
+            fare={quotes.find(q => q.ride_class === vehicle.id)!.total_usd_cents / 100}
             active={vehicle.id === selected}
             onSelect={() => onSelect(vehicle.id)}
           />

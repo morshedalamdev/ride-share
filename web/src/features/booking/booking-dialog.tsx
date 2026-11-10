@@ -13,7 +13,6 @@ import {
 
 import { createDemoTrip } from "@/features/rides/create-demo-trip";
 import { vehicles } from "@/features/rides/data";
-import { estimateRoute } from "@/features/rides/estimate";
 import type { RideDraft, Trip } from "@/features/rides/types";
 import { BookingDetails, DriverDetails } from "./booking-details";
 
@@ -42,6 +41,7 @@ const stages = {
 interface BookingDialogProps {
   draft: RideDraft;
   total: number;
+  minutes: number;
   onClose: () => void;
   onRecord: (trip: Trip) => void;
 }
@@ -49,6 +49,7 @@ interface BookingDialogProps {
 export function BookingDialog({
   draft,
   total,
+  minutes,
   onClose,
   onRecord,
 }: BookingDialogProps) {
@@ -60,7 +61,6 @@ export function BookingDialog({
   const titleId = useId();
   const descriptionId = useId();
   const vehicle = vehicles.find((option) => option.id === draft.rideClass)!;
-  const route = estimateRoute(draft.pickup, draft.dropoff);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -122,7 +122,7 @@ export function BookingDialog({
   const descriptions = {
     searching: `Looking for a nearby driver for your ${vehicle.name} ride.`,
     matched: `Meet Jordan at ${draft.pickup.name} in about ${vehicle.minutes} minutes.`,
-    riding: `Your trip to ${draft.dropoff.name} takes about ${route.minutes} minutes.`,
+    riding: `Your trip to ${draft.dropoff.name} takes about ${minutes} minutes.`,
     checkout:
       "Confirm the simulated payment to finish this trip. No money will be charged.",
     receipt:
