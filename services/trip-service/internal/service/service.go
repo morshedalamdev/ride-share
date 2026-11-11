@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	"github.com/morshedalamdev/ride-share/services/trip-service/internal/domain"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type service struct {
@@ -17,13 +17,13 @@ func NewService(repo domain.TripRepository) *service {
 	}
 }
 
-func (s *service) CreateTrip(ctx context.Context, fare *domain.RideFareModel) (*domain.TripModel, error) {
-	t := &domain.TripModel{
-		ID:       primitive.NewObjectID(),
-		UserID:   "",
-		Status:   "pending",
-		RideFare: fare,
+func (s *service) CreateTrip(
+	ctx context.Context,
+	rider string,
+	quoteID string,
+) (*domain.TripModel, error) {
+	if strings.TrimSpace(rider) == "" || strings.TrimSpace(quoteID) == "" {
+		return nil, domain.ErrInvalidBooking
 	}
-
-	return s.repo.CreateTrip(ctx, t)
+	return s.repo.BookQuote(ctx, rider, quoteID)
 }

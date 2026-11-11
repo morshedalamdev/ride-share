@@ -7,11 +7,12 @@
 package tripv1
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -136,7 +137,7 @@ func (x *PreviewTripRequest) GetDestination() *Coordinate {
 type FareQuote struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RideClass     string                 `protobuf:"bytes,1,opt,name=ride_class,json=rideClass,proto3" json:"ride_class,omitempty"`
-	TotalUsdCents int64                  `protobuf:"varint,2,opt,name=total_usd_cents,json=totalUsdCents,proto3" json:"total_usd_cents,omitempty"`
+	TotalUsdCents float64                `protobuf:"varint,2,opt,name=total_usd_cents,json=totalUsdCents,proto3" json:"total_usd_cents,omitempty"`
 	QuoteId       string                 `protobuf:"bytes,3,opt,name=quote_id,json=quoteId,proto3" json:"quote_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -179,7 +180,7 @@ func (x *FareQuote) GetRideClass() string {
 	return ""
 }
 
-func (x *FareQuote) GetTotalUsdCents() int64 {
+func (x *FareQuote) GetTotalUsdCents() float64 {
 	if x != nil {
 		return x.TotalUsdCents
 	}

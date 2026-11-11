@@ -1,0 +1,132 @@
+package service_test
+
+import (
+	"context"
+	"errors"
+	"sync"
+	"testing"
+
+	"github.com/morshedalamdev/ride-share/services/trip-service/internal/domain"
+	"github.com/morshedalamdev/ride-share/services/trip-service/internal/service"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type bookingRepository struct {
+	mu    sync.Mutex
+	quote domain.RideFareModel
+	trip  *domain.TripModel
+}
+
+func (r *bookingRepository) saveQuote(quote domain.RideFareModel) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.quote = quote
+}
+
+func (r *bookingRepository) BookQuote(_ context.Context, userID string, quoteID primitive.ObjectID) (*domain.TripModel, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.quote.ID != quoteID || r.quote.UserID != userID {
+		return nil, domain.ErrQuoteNotFound
+	}
+	if r.trip == nil {
+		r.trip = &domain.TripModel{
+			ID:       primitive.NewObjectID(),
+			UserID:   userID,
+			RideFare: r.quote,
+			Status:   domain.Pending,
+		}
+	}
+	return r.trip, nil
+}
+
+type tripRepositoryAdapter struct {
+	repo interface {
+		BookQuote(context.Context, string, primitive.ObjectID) (*domain.TripModel, error)
+	}
+}
+
+func (r *tripRepositoryAdapter) BookQuote(ctx context.Context, userID, quoteID string) (*domain.TripModel, error) {
+	id, err := primitive.ObjectIDFromHex(quoteID)
+	if err != nil {
+		return nil, domain.ErrQuoteNotFound
+	}
+	return r.repo.BookQuote(ctx, userID, id)
+}
+
+func TestBookSelectedQuote(t *testing.T) {
+	repo := &bookingRepository{}
+	bookings := service.NewService(&tripRepositoryAdapter{repo: repo})
+	ctx := t.Context()
+
+	fare := domain.RideFareModel{
+		ID:         primitive.NewObjectID(),
+		UserID:     "rider-1",
+		RideClass:  "suv",
+		TotalCents: 2402,
+	}
+	repo.saveQuote(fare)
+
+	_, err := bookings.CreateTrip(ctx, "rider-2", fare.ID.Hex())
+	if !errors.Is(err, domain.ErrQuoteNotFound) {
+		t.Fatalf("wrong rider: got %v", err)
+	}
+
+	type result struct {
+		trip *domain.TripModel
+		err  error
+	}
+	results := make(chan result, 16)
+
+	for range cap(results) {
+		go func() {
+			trip, err := bookings.CreateTrip(ctx, fare.UserID, fare.ID.Hex())
+			results <- result{trip, err}
+		}()
+	}
+
+	var first primitive.ObjectID
+	for range cap(results) {
+		r := <-results
+		if r.err != nil {
+			t.Fatal(r.err)
+		}
+		trip := r.trip
+		if trip.ID.IsZero() || trip.ID == fare.ID ||
+			trip.UserID != fare.UserID || trip.RideFare != fare ||
+			trip.Status != domain.Pending {
+			t.Fatalf("unexpected booking: %+v", trip)
+		}
+		if !first.IsZero() && first != trip.ID {
+			t.Fatal("same quote produced different trip IDs")
+		}
+		first = trip.ID
+	}
+}
+
+func TestCancellation(t *testing.T) {
+	trip := domain.TripModel{
+		Status:   domain.Pending,
+		RideFare: domain.RideFareModel{TotalCents: 2402},
+	}
+	if err := trip.Transition(domain.Accepted); err != nil {
+		t.Fatal(err)
+	}
+
+	afterPickup := trip
+	if err := trip.Transition(domain.Canceled); err != nil {
+		t.Fatal(err)
+	}
+	if trip.AmountDueCents() != 0 || trip.RideFare.TotalCents != 2402 {
+		t.Fatal("incorrect cancellation fare")
+	}
+
+	if err := afterPickup.Transition(domain.InProgress); err != nil {
+		t.Fatal(err)
+	}
+	err := afterPickup.Transition(domain.Canceled)
+	if !errors.Is(err, domain.ErrTransition) || afterPickup.Status != domain.InProgress {
+		t.Fatal("canceled after pickup")
+	}
+}

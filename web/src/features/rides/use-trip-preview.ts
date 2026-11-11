@@ -82,7 +82,7 @@ export function useTripPreview(pickup: string, destination: string) {
         });
         return () => controller.abort();
     }, [pickup, destination, key]);
-
+    if (result && result.key !== key) setResult(null);
     const current = result?.key === key ? result : null;
     return {
         preview: current?.data ?? null,
