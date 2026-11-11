@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"context"
+
 	"github.com/morshedalamdev/ride-share/shared/types"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -14,4 +16,8 @@ type RideFareModel struct {
 	Destination     types.Coordinate   `bson:"destination"`
 	DistanceMeters  float64            `bson:"distance_meters"`
 	DurationSeconds float64            `bson:"duration_seconds"`
+}
+
+type QuoteRepo interface {
+	SaveQuotes(context.Context, []RideFareModel) error
 }

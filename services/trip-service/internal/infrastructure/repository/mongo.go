@@ -35,7 +35,7 @@ func NewMongoRepo(ctx context.Context, db *mongo.Database) (*MongoRepo, error) {
 	return r, nil
 }
 
-func (r *MongoRepo) SaveQuote(
+func (r *MongoRepo) SaveQuotes(
 	ctx context.Context,
 	fares []domain.RideFareModel,
 ) error {
@@ -86,6 +86,10 @@ func (r *MongoRepo) BookQuote(
 		bson.M{"$setOnInsert": candidate},
 		options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After),
 	).Decode(&trip)
+
+	if mongo.IsDuplicateKeyError(err) {
+		err = r.trips.FindOne(ctx, filter).Decode(&trip)
+	}
 
 	if err != nil {
 		return nil, err

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: trip-service
-          image: ride-share/trip-service:dev-2
+          image: ride-share/trip-service:dev-3
           imagePullPolicy: Never
           env:
             - name: TRIP_GRPC_ADDR

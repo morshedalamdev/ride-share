@@ -76,14 +76,14 @@ func (s *Server) PreviewTrip(ctx context.Context, req *tripv1.PreviewTripRequest
 			ID:              id,
 			UserID:          req.GetUserId(),
 			RideClass:       fare.RideClass,
-			TotalCents:      fare.TotalUsdCents,
+			TotalCents:      fare.TotalUSDCents,
 			Pickup:          pickup,
 			Destination:     destination,
 			DistanceMeters:  route.Distance,
 			DurationSeconds: route.Duration,
 		})
 	}
-	if err := s.quotes.SaveQuote(ctx, stored); err != nil {
+	if err := s.quotes.SaveQuotes(ctx, stored); err != nil {
 		if ctx.Err() != nil {
 			return nil, status.FromContextError(ctx.Err()).Err()
 		}
