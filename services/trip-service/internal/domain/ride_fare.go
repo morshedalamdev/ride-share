@@ -9,7 +9,7 @@ type RideFareModel struct {
 	ID          primitive.ObjectID
 	UserID      string
 	RideClass   string
-	TotalCents  float64
+	TotalCents  int64
 	Pickup      types.Coordinate
 	Destination types.Coordinate
 }

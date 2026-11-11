@@ -27,9 +27,9 @@ type previewTripReq struct {
 }
 
 type quoteJSON struct {
-	RideClass     string  `json:"ride_class"`
-	TotalUSDCents float64 `json:"total_usd_cents"`
-	QuoteID       string  `json:"quote_id"`
+	RideClass     string `json:"ride_class"`
+	TotalUSDCents int64  `json:"total_usd_cents"`
+	QuoteID       string `json:"quote_id"`
 }
 
 type previewTripJSON struct {

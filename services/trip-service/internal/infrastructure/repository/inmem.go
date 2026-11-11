@@ -52,3 +52,14 @@ func (r *inmemRepo) BookQuote(
 
 	return &trip, nil
 }
+
+var _ domain.TripRepo = (*inmemRepo)(nil)
+
+func (r *inmemRepo) SaveQuote(fare domain.RideFareModel) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if _, exists := r.quotes[fare.ID]; !exists {
+		r.quotes[fare.ID] = fare
+	}
+}

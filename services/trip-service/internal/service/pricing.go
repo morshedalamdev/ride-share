@@ -10,7 +10,7 @@ import (
 type FareQuote struct {
 	ID            string
 	RideClass     string
-	TotalUSDCents float64
+	TotalUSDCents int64
 }
 
 func CalculateQuotes(distanceMeters float64) ([]FareQuote, error) {
@@ -43,7 +43,7 @@ func CalculateQuotes(distanceMeters float64) ([]FareQuote, error) {
 		quotes = append(quotes, FareQuote{
 			ID:            primitive.NewObjectID().Hex(),
 			RideClass:     rate.class,
-			TotalUSDCents: float64(total),
+			TotalUSDCents: int64(total),
 		})
 	}
 	return quotes, nil

@@ -7,23 +7,24 @@ import (
 	"testing"
 
 	"github.com/morshedalamdev/ride-share/services/trip-service/internal/domain"
+	"github.com/morshedalamdev/ride-share/services/trip-service/internal/infrastructure/repository"
 	"github.com/morshedalamdev/ride-share/services/trip-service/internal/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type bookingRepository struct {
+type bookingRepo struct {
 	mu    sync.Mutex
 	quote domain.RideFareModel
 	trip  *domain.TripModel
 }
 
-func (r *bookingRepository) saveQuote(quote domain.RideFareModel) {
+func (r *bookingRepo) saveQuote(quote domain.RideFareModel) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.quote = quote
 }
 
-func (r *bookingRepository) BookQuote(_ context.Context, userID string, quoteID primitive.ObjectID) (*domain.TripModel, error) {
+func (r *bookingRepo) BookQuote(_ context.Context, userID string, quoteID primitive.ObjectID) (*domain.TripModel, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -41,13 +42,13 @@ func (r *bookingRepository) BookQuote(_ context.Context, userID string, quoteID 
 	return r.trip, nil
 }
 
-type tripRepositoryAdapter struct {
+type TripRepoAdapter struct {
 	repo interface {
 		BookQuote(context.Context, string, primitive.ObjectID) (*domain.TripModel, error)
 	}
 }
 
-func (r *tripRepositoryAdapter) BookQuote(ctx context.Context, userID, quoteID string) (*domain.TripModel, error) {
+func (r *TripRepoAdapter) BookQuote(ctx context.Context, userID, quoteID string) (*domain.TripModel, error) {
 	id, err := primitive.ObjectIDFromHex(quoteID)
 	if err != nil {
 		return nil, domain.ErrQuoteNotFound
@@ -56,8 +57,8 @@ func (r *tripRepositoryAdapter) BookQuote(ctx context.Context, userID, quoteID s
 }
 
 func TestBookSelectedQuote(t *testing.T) {
-	repo := &bookingRepository{}
-	bookings := service.NewService(&tripRepositoryAdapter{repo: repo})
+	repo := repository.NewInmemRepo()
+	bookings := service.NewService(repo)
 	ctx := t.Context()
 
 	fare := domain.RideFareModel{
@@ -66,9 +67,9 @@ func TestBookSelectedQuote(t *testing.T) {
 		RideClass:  "suv",
 		TotalCents: 2402,
 	}
-	repo.saveQuote(fare)
+	repo.SaveQuote(fare)
 
-	_, err := bookings.CreateTrip(ctx, "rider-2", fare.ID.Hex())
+	_, err := bookings.CreateTrip(ctx, "rider-2", fare.ID)
 	if !errors.Is(err, domain.ErrQuoteNotFound) {
 		t.Fatalf("wrong rider: got %v", err)
 	}
@@ -81,7 +82,7 @@ func TestBookSelectedQuote(t *testing.T) {
 
 	for range cap(results) {
 		go func() {
-			trip, err := bookings.CreateTrip(ctx, fare.UserID, fare.ID.Hex())
+			trip, err := bookings.CreateTrip(ctx, fare.UserID, fare.ID)
 			results <- result{trip, err}
 		}()
 	}

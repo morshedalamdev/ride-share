@@ -52,17 +52,25 @@ func (t *TripModel) Transition(next TripStatus) error {
 	return nil
 }
 
-func (t TripModel) AmountDueCents() float64 {
+func (t TripModel) AmountDueCents() int64 {
 	if t.Status == Canceled {
 		return 0
 	}
 	return t.RideFare.TotalCents
 }
 
-type TripRepository interface {
-	BookQuote(ctx context.Context, userID string, quoteID string) (*TripModel, error)
+type TripRepo interface {
+	BookQuote(
+		ctx context.Context,
+		rider string,
+		quoteID primitive.ObjectID,
+	) (*TripModel, error)
 }
 
 type TripService interface {
-	CreateTrip(ctx context.Context, fare *RideFareModel) (*TripModel, error)
+	CreateTrip(
+		ctx context.Context,
+		rider string,
+		quoteID primitive.ObjectID,
+	) (*TripModel, error)
 }
