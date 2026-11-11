@@ -25,10 +25,10 @@ const (
 )
 
 type TripModel struct {
-	ID       primitive.ObjectID
-	UserID   string
-	Status   TripStatus
-	RideFare RideFareModel
+	ID       primitive.ObjectID `bson:"_id"`
+	UserID   string             `bson:"user_id"`
+	Status   TripStatus         `bson:"status"`
+	RideFare RideFareModel      `bson:"ride_fare"`
 }
 
 func (t *TripModel) Transition(next TripStatus) error {

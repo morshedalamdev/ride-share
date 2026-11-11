@@ -15,11 +15,13 @@ spec:
     spec:
       containers:
         - name: trip-service
-          image: ride-share/trip-service:dev-1
+          image: ride-share/trip-service:dev-2
           imagePullPolicy: Never
           env:
             - name: TRIP_GRPC_ADDR
               value: ":50051"
+            - name: MONGO_URI
+              value: "mongodb://mongodb:27017"
           ports:
             - name: grpc
               containerPort: 50051

@@ -6,10 +6,12 @@ import (
 )
 
 type RideFareModel struct {
-	ID          primitive.ObjectID
-	UserID      string
-	RideClass   string
-	TotalCents  int64
-	Pickup      types.Coordinate
-	Destination types.Coordinate
+	ID              primitive.ObjectID `bson:"_id"`
+	UserID          string             `bson:"user_id"`
+	RideClass       string             `bson:"ride_class"`
+	TotalCents      int64              `bson:"total_cents"`
+	Pickup          types.Coordinate   `bson:"pickup"`
+	Destination     types.Coordinate   `bson:"destination"`
+	DistanceMeters  float64            `bson:"distance_meters"`
+	DurationSeconds float64            `bson:"duration_seconds"`
 }
