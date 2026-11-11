@@ -2,235 +2,215 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import {
-  ArrowRight,
-  CarFront,
-  Check,
-  CreditCard,
-  LoaderCircle,
-  Navigation,
-  X,
-} from "lucide-react";
+  saveBooking,
+  type BookingSession,
+} from "@/features/rides/booking-session";
+import type { RideClass, Trip } from "@/features/rides/types";
+import { BookingDetails } from "./booking-details";
 
-import { createDemoTrip } from "@/features/rides/create-demo-trip";
-import { vehicles } from "@/features/rides/data";
-import type { RideDraft, Trip } from "@/features/rides/types";
-import { BookingDetails, DriverDetails } from "./booking-details";
+interface SavedTrip {
+  trip_id: string;
+  status: string;
+  quote: {
+    ride_class: RideClass;
+    quote_id: string;
+    total_usd_cents: number;
+  };
+  amount_due_cents: number;
+  created_at: string;
+}
 
-type BookingStage = "searching" | "matched" | "riding" | "checkout" | "receipt";
+class RequestError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+  }
+}
 
-const stages = {
-  searching: { title: "Finding your driver", icon: LoaderCircle, action: null },
-  matched: {
-    title: "Your driver is on the way",
-    icon: CarFront,
-    action: "Start demo ride",
-  },
-  riding: {
-    title: "Your ride is underway",
-    icon: Navigation,
-    action: "Finish demo ride",
-  },
-  checkout: {
-    title: "Review your fare",
-    icon: CreditCard,
-    action: "Confirm demo payment",
-  },
-  receipt: { title: "Ride complete", icon: Check, action: "Done" },
-};
-
-interface BookingDialogProps {
-  draft: RideDraft;
-  total: number;
-  minutes: number;
-  onClose: () => void;
-  onRecord: (trip: Trip) => void;
+async function request(
+  path: string,
+  body?: object,
+  signal?: AbortSignal,
+): Promise<SavedTrip> {
+  const response = await fetch(path, {
+    method: body ? "POST" : "GET",
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+    cache: "no-store",
+    signal,
+  });
+  if (!response.ok) {
+    throw new RequestError(await response.text(), response.status);
+  }
+  return response.json();
 }
 
 export function BookingDialog({
-  draft,
-  total,
-  minutes,
+  session,
   onClose,
   onRecord,
-}: BookingDialogProps) {
-  const [stage, setStage] = useState<BookingStage>("searching");
-  const [confirmCancel, setConfirmCancel] = useState(false);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const recorded = useRef(false);
-  const titleId = useId();
-  const descriptionId = useId();
-  const vehicle = vehicles.find((option) => option.id === draft.rideClass)!;
+}: {
+  session: BookingSession;
+  onClose: () => void;
+  onRecord: (trip: Trip) => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const heading = useId();
+  const [attempt, setAttempt] = useState(0);
+  const [canceling, setCanceling] = useState(false);
+  const key = JSON.stringify([session.requestKey, session.tripId, attempt]);
+
+  const [view, setView] = useState<{
+    key: string;
+    trip: SavedTrip | null;
+    error: string;
+    canDismiss: boolean;
+  } | null>(null);
+
+  const current = view?.key === key ? view : null;
+  const trip = current?.trip;
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    const previousOverflow = document.body.style.overflow;
-    dialog.showModal();
+    const element = dialog.current!;
+    const overflow = document.body.style.overflow;
+    element.showModal();
     document.body.style.overflow = "hidden";
     return () => {
-      dialog.close();
-      document.body.style.overflow = previousOverflow;
+      element.close();
+      document.body.style.overflow = overflow;
     };
   }, []);
 
   useEffect(() => {
-    if (stage !== "searching" || confirmCancel) return;
-    const timeout = window.setTimeout(() => setStage("matched"), 1800);
-    return () => window.clearTimeout(timeout);
-  }, [stage, confirmCancel]);
+    const controller = new AbortController();
 
-  useEffect(() => {
-    headingRef.current?.focus();
-  }, [stage, confirmCancel]);
+    const operation = session.tripId
+      ? request(
+        `/api/trips/${session.tripId}/?user_id=rider-1`,
+        undefined,
+        controller.signal,
+      )
+      : request(
+        "/api/trips/",
+        {
+          user_id: "rider-1",
+          quote_id: session.quoteId,
+          request_key: session.requestKey,
+        },
+        controller.signal,
+      );
 
-  function requestClose() {
-    if (stage === "receipt") onClose();
-    else setConfirmCancel(true);
-  }
+    operation.then(trip => {
+      if (controller.signal.aborted) return;
+      if (!session.tripId) {
+        saveBooking({ ...session, tripId: trip.trip_id });
+      }
+      setView({ key, trip, error: "", canDismiss: false });
+    }).catch(error => {
+      if (controller.signal.aborted) return;
+      setView({
+        key,
+        trip: null,
+        error: error instanceof Error ? error.message : "Request failed",
+        canDismiss:
+          error instanceof RequestError &&
+          [400, 404, 409].includes(error.status),
+      });
+    });
 
-  function record(status: Trip["status"]) {
-    if (recorded.current) return;
-    recorded.current = true;
-    onRecord(createDemoTrip(draft, { role: "rider", status, total }));
-  }
+    return () => controller.abort();
+  }, [session, key]);
 
-  function cancelRide() {
-    record("Canceled");
-    onClose();
-  }
-
-  function advanceRide() {
-    switch (stage) {
-      case "matched":
-        setStage("riding");
-        break;
-      case "riding":
-        setStage("checkout");
-        break;
-      case "checkout":
-        record("Completed");
-        setStage("receipt");
-        break;
-      case "receipt":
-        onClose();
-        break;
+  async function cancelTrip() {
+    if (!trip || canceling) return;
+    setCanceling(true);
+    try {
+      const updated = await request(
+        `/api/trips/${trip.trip_id}/cancel/`,
+        { user_id: "rider-1" },
+      );
+      setView({ key, trip: updated, error: "", canDismiss: false });
+    } catch (error) {
+      setView({
+        key,
+        trip,
+        canDismiss: false,
+        error: error instanceof Error ? error.message : "Cancellation failed",
+      });
+    } finally {
+      setCanceling(false);
     }
   }
 
-  const descriptions = {
-    searching: `Looking for a nearby driver for your ${vehicle.name} ride.`,
-    matched: `Meet Jordan at ${draft.pickup.name} in about ${vehicle.minutes} minutes.`,
-    riding: `Your trip to ${draft.dropoff.name} takes about ${minutes} minutes.`,
-    checkout:
-      "Confirm the simulated payment to finish this trip. No money will be charged.",
-    receipt:
-      "Your demo payment is complete. Your receipt is saved in Activity.",
-  };
-  const { icon: Icon, title, action } = stages[stage];
+  function finish() {
+    if (trip?.status === "canceled") {
+      onRecord({
+        ...session.draft,
+        id: trip.trip_id,
+        rideClass: trip.quote.ride_class,
+        total: trip.amount_due_cents / 100,
+        date: trip.created_at,
+        status: "Canceled",
+        role: "rider",
+      });
+    }
+    onClose();
+  }
+
+  const terminal = trip?.status === "canceled" || trip?.status === "completed";
 
   return (
     <dialog
-      ref={dialogRef}
-      aria-labelledby={titleId}
-      aria-describedby={descriptionId}
-      onCancel={(event) => {
-        event.preventDefault();
-        if (confirmCancel) setConfirmCancel(false);
-        else requestClose();
-      }}
-      className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[min(28rem,calc(100%-2rem))] overflow-y-auto rounded-2xl border border-line bg-white p-0 text-ink shadow-2xl backdrop:bg-[#202722]/45 backdrop:backdrop-blur-[3px]"
+      ref={dialog}
+      aria-labelledby={heading}
+      onCancel={event => event.preventDefault()}
+      className="fixed inset-0 m-auto w-[min(28rem,calc(100%-2rem))] rounded-2xl border border-line bg-white p-6 text-ink shadow-2xl backdrop:bg-black/40"
     >
-      <div className="relative p-5 sm:p-7">
+      <h2 id={heading} className="section-title">Your trip</h2>
+
+      {!current && (
+        <p role="status" className="mt-4">Loading your booking…</p>
+      )}
+      {current?.error && (
+        <p role="alert" className="mt-4 text-red-700">{current.error}</p>
+      )}
+      {trip && (
+        <div className="mt-4 grid gap-3">
+          <p>Status: {trip.status.replace(/_/g, " ")}</p>
+          <p className="break-all text-xs text-muted">Trip {trip.trip_id}</p>
+          <BookingDetails
+            draft={session.draft}
+            total={trip.amount_due_cents / 100}
+          />
+        </div>
+      )}
+
+      <div className="mt-5 grid gap-2">
         <button
-          type="button"
-          aria-label={confirmCancel ? "Return to ride" : "Close ride details"}
-          onClick={confirmCancel ? () => setConfirmCancel(false) : requestClose}
-          className="absolute top-4 right-4 grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-canvas hover:text-ink"
+          className="secondary-button"
+          disabled={!current || canceling}
+          onClick={() => setAttempt(n => n + 1)}
         >
-          <X size={18} aria-hidden="true" />
+          {current?.error ? "Retry / refresh" : "Refresh status"}
         </button>
-        <span
-          aria-hidden="true"
-          className={`mb-4 grid size-11 place-items-center rounded-2xl ${stage === "receipt" ? "bg-[#e8f2e8] text-[#376248]" : "bg-peach text-[#b74121]"}`}
-        >
-          {confirmCancel ? (
-            <X size={21} />
-          ) : (
-            <Icon
-              size={21}
-              className={
-                stage === "searching" ? "motion-safe:animate-spin" : undefined
-              }
-            />
-          )}
-        </span>
-        <h2
-          ref={headingRef}
-          tabIndex={-1}
-          id={titleId}
-          className="section-title outline-none"
-        >
-          {confirmCancel ? "Cancel this demo ride?" : title}
-        </h2>
-        <p
-          id={descriptionId}
-          className="mt-2 text-sm leading-relaxed text-muted"
-        >
-          {confirmCancel
-            ? "Your activity will show a canceled ride with a $0.00 fare."
-            : descriptions[stage]}
-        </p>
-        {confirmCancel ? (
-          <div className="mt-6 grid gap-2 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => setConfirmCancel(false)}
-              className="primary-button"
-            >
-              Keep ride
-            </button>
-            <button
-              type="button"
-              onClick={cancelRide}
-              className="secondary-button"
-            >
-              Cancel ride
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="mt-5 grid gap-3">
-              {(stage === "matched" || stage === "riding") && (
-                <DriverDetails vehicle={vehicle} />
-              )}
-              <BookingDetails draft={draft} total={total} />
-            </div>
-            <div className="mt-5 grid gap-2">
-              {action && (
-                <button
-                  type="button"
-                  onClick={advanceRide}
-                  className="primary-button"
-                >
-                  {action}
-                  {stage !== "receipt" && (
-                    <ArrowRight size={16} aria-hidden="true" />
-                  )}
-                </button>
-              )}
-              {(stage === "searching" || stage === "matched") && (
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={requestClose}
-                >
-                  Cancel request
-                </button>
-              )}
-            </div>
-          </>
+
+        {trip && ["pending", "accepted"].includes(trip.status) && (
+          <button
+            className="secondary-button"
+            disabled={canceling}
+            onClick={cancelTrip}
+          >
+            {canceling ? "Canceling…" : "Cancel trip"}
+          </button>
+        )}
+
+        {(terminal || current?.canDismiss) && (
+          <button
+            className="primary-button"
+            disabled={canceling}
+            onClick={finish}
+          >
+            Done
+          </button>
         )}
       </div>
     </dialog>

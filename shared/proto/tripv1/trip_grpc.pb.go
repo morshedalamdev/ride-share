@@ -20,6 +20,9 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	TripService_PreviewTrip_FullMethodName = "/trip.v1.TripService/PreviewTrip"
+	TripService_BookTrip_FullMethodName    = "/trip.v1.TripService/BookTrip"
+	TripService_GetTrip_FullMethodName     = "/trip.v1.TripService/GetTrip"
+	TripService_CancelTrip_FullMethodName  = "/trip.v1.TripService/CancelTrip"
 )
 
 // TripServiceClient is the client API for TripService service.
@@ -27,6 +30,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TripServiceClient interface {
 	PreviewTrip(ctx context.Context, in *PreviewTripRequest, opts ...grpc.CallOption) (*PreviewTripResponse, error)
+	BookTrip(ctx context.Context, in *BookTripRequest, opts ...grpc.CallOption) (*Trip, error)
+	GetTrip(ctx context.Context, in *TripRequest, opts ...grpc.CallOption) (*Trip, error)
+	CancelTrip(ctx context.Context, in *TripRequest, opts ...grpc.CallOption) (*Trip, error)
 }
 
 type tripServiceClient struct {
@@ -47,11 +53,44 @@ func (c *tripServiceClient) PreviewTrip(ctx context.Context, in *PreviewTripRequ
 	return out, nil
 }
 
+func (c *tripServiceClient) BookTrip(ctx context.Context, in *BookTripRequest, opts ...grpc.CallOption) (*Trip, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Trip)
+	err := c.cc.Invoke(ctx, TripService_BookTrip_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tripServiceClient) GetTrip(ctx context.Context, in *TripRequest, opts ...grpc.CallOption) (*Trip, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Trip)
+	err := c.cc.Invoke(ctx, TripService_GetTrip_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tripServiceClient) CancelTrip(ctx context.Context, in *TripRequest, opts ...grpc.CallOption) (*Trip, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Trip)
+	err := c.cc.Invoke(ctx, TripService_CancelTrip_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TripServiceServer is the server API for TripService service.
 // All implementations must embed UnimplementedTripServiceServer
 // for forward compatibility.
 type TripServiceServer interface {
 	PreviewTrip(context.Context, *PreviewTripRequest) (*PreviewTripResponse, error)
+	BookTrip(context.Context, *BookTripRequest) (*Trip, error)
+	GetTrip(context.Context, *TripRequest) (*Trip, error)
+	CancelTrip(context.Context, *TripRequest) (*Trip, error)
 	mustEmbedUnimplementedTripServiceServer()
 }
 
@@ -64,6 +103,15 @@ type UnimplementedTripServiceServer struct{}
 
 func (UnimplementedTripServiceServer) PreviewTrip(context.Context, *PreviewTripRequest) (*PreviewTripResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PreviewTrip not implemented")
+}
+func (UnimplementedTripServiceServer) BookTrip(context.Context, *BookTripRequest) (*Trip, error) {
+	return nil, status.Error(codes.Unimplemented, "method BookTrip not implemented")
+}
+func (UnimplementedTripServiceServer) GetTrip(context.Context, *TripRequest) (*Trip, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTrip not implemented")
+}
+func (UnimplementedTripServiceServer) CancelTrip(context.Context, *TripRequest) (*Trip, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelTrip not implemented")
 }
 func (UnimplementedTripServiceServer) mustEmbedUnimplementedTripServiceServer() {}
 func (UnimplementedTripServiceServer) testEmbeddedByValue()                     {}
@@ -104,6 +152,60 @@ func _TripService_PreviewTrip_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TripService_BookTrip_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BookTripRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TripServiceServer).BookTrip(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TripService_BookTrip_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TripServiceServer).BookTrip(ctx, req.(*BookTripRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TripService_GetTrip_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TripRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TripServiceServer).GetTrip(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TripService_GetTrip_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TripServiceServer).GetTrip(ctx, req.(*TripRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TripService_CancelTrip_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TripRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TripServiceServer).CancelTrip(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TripService_CancelTrip_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TripServiceServer).CancelTrip(ctx, req.(*TripRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TripService_ServiceDesc is the grpc.ServiceDesc for TripService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +216,18 @@ var TripService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PreviewTrip",
 			Handler:    _TripService_PreviewTrip_Handler,
+		},
+		{
+			MethodName: "BookTrip",
+			Handler:    _TripService_BookTrip_Handler,
+		},
+		{
+			MethodName: "GetTrip",
+			Handler:    _TripService_GetTrip_Handler,
+		},
+		{
+			MethodName: "CancelTrip",
+			Handler:    _TripService_CancelTrip_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

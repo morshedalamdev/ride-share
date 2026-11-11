@@ -24,8 +24,13 @@ func main() {
 	defer conn.Close()
 
 	mux := http.NewServeMux()
+	trips := tripv1.NewTripServiceClient(conn)
 	mux.HandleFunc("GET /health", handleHealthCheck)
 	mux.HandleFunc("POST /trip/preview", handleTripPreview(tripv1.NewTripServiceClient(conn)))
+	// Trip booking endpoints
+	mux.HandleFunc("POST /trips", handleBooking(trips, "book"))
+	mux.HandleFunc("GET /trips/{id}", handleBooking(trips, "read"))
+	mux.HandleFunc("POST /trips/{id}/cancel", handleBooking(trips, "cancel"))
 
 	addr := env.GetString("HTTP_ADDR", ":8080")
 	log.Printf("Starting API Gateway on %s with trip target %s", addr, target)

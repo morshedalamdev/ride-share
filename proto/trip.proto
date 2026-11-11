@@ -5,6 +5,9 @@ option go_package = "github.com/morshedalamdev/ride-share/shared/proto/tripv1";
 
 service TripService {
   rpc PreviewTrip(PreviewTripRequest) returns (PreviewTripResponse);
+  rpc BookTrip(BookTripRequest) returns (Trip);
+  rpc GetTrip(TripRequest) returns (Trip);
+  rpc CancelTrip(TripRequest) returns (Trip);
 }
 
 message Coordinate {
@@ -28,4 +31,27 @@ message PreviewTripResponse {
   double distance_meters = 1;
   double duration_seconds = 2;
   repeated FareQuote quotes = 3;
+}
+
+message BookTripRequest {
+  string user_id = 1;
+  string quote_id = 2;
+  string request_key = 3;
+}
+
+message TripRequest {
+  string user_id = 1;
+  string trip_id = 2;
+}
+
+message Trip {
+  string trip_id = 1;
+  string status = 2;
+  FareQuote quote = 3;
+  int64 amount_due_cents = 4;
+  Coordinate pickup = 5;
+  Coordinate destination = 6;
+  double distance_meters = 7;
+  double duration_seconds = 8;
+  string created_at = 9;
 }

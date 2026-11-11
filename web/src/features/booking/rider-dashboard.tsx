@@ -11,11 +11,13 @@ import { useTripHistory } from "@/features/rides/use-trip-history";
 import { BookingDialog } from "./booking-dialog";
 import { RideOptions } from "./ride-options";
 import { TripPlanner } from "./trip-planner";
+import { saveBooking, useBookingSession } from "../rides/booking-session";
 
 export function RiderDashboard() {
   const { draft, setDraft } = useRideDraft();
   const { addTrip } = useTripHistory();
-  const [booking, setBooking] = useState(false);
+  const booking = useBookingSession();
+  const [bookingError, setBookingError] = useState("");
   const vehicle = vehicles.find((option) => option.id === draft.rideClass)!;
   const { preview, failed, retry } = useTripPreview(draft.pickup.id, draft.dropoff.id);
   const quote = preview?.quotes.find(q => q.ride_class === draft.rideClass);
@@ -24,13 +26,36 @@ export function RiderDashboard() {
   const miles = preview ? preview.distance_meters / 1609.344 : null;
   const minutes = preview ? Math.round(preview.duration_seconds / 60) : null;
 
+  function startBooking() {
+    if (!quote || booking) return;
+    try {
+      saveBooking({
+        requestKey: crypto.randomUUID(),
+        quoteId: quote.quote_id,
+        draft,
+      });
+      setBookingError("");
+    } catch {
+      setBookingError("Enable browser storage to recover your booking after refresh.");
+    }
+  }
+
+  function closeBooking() {
+    try {
+      saveBooking(null);
+      retry();
+    } catch {
+      setBookingError("Could not clear the saved booking. Try again.");
+    }
+  }
+
   return (
     <>
       <div className="grid items-stretch gap-4 md:grid-cols-[minmax(295px,0.85fr)_minmax(0,2fr)] lg:gap-5">
         <TripPlanner
           draft={draft}
           onChange={setDraft}
-          onRequest={() => setBooking(true)}
+          onRequest={() => startBooking}
           vehicle={vehicle}
           miles={miles}
           minutes={minutes}
@@ -67,7 +92,7 @@ export function RiderDashboard() {
       )}
       <button
         type="button"
-        onClick={() => setBooking(true)}
+        onClick={() => startBooking}
         disabled={fare === null}
         className="primary-button mt-4 w-full justify-between md:hidden"
       >
@@ -75,12 +100,11 @@ export function RiderDashboard() {
         <ArrowRight size={17} />
       </button>
       <ActivitySection role="rider" compact />
-      {booking && fare !== null && minutes !== null && (
+      {bookingError && <p role="alert">{bookingError}</p>}
+      {booking && (
         <BookingDialog
-          draft={draft}
-          total={fare}
-          minutes={minutes}
-          onClose={() => setBooking(false)}
+          session={booking}
+          onClose={closeBooking}
           onRecord={addTrip}
         />
       )}

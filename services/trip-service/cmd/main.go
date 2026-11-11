@@ -57,7 +57,7 @@ func main() {
 	)
 
 	server := grpc.NewServer()
-	tripv1.RegisterTripServiceServer(server, tripgrpc.NewServer(routes, repo))
+	tripv1.RegisterTripServiceServer(server, tripgrpc.NewServer(routes, repo, repo))
 
 	log.Printf("Trip gRPC server listening on %v", listener.Addr())
 	if err := server.Serve(listener); err != nil {

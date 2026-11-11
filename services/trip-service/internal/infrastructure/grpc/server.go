@@ -18,10 +18,15 @@ type Server struct {
 	tripv1.UnimplementedTripServiceServer
 	routes service.RouteProvider
 	quotes domain.QuoteRepo
+	trips  domain.BookingRepo
 }
 
-func NewServer(routes service.RouteProvider, quotes domain.QuoteRepo) *Server {
-	return &Server{routes: routes, quotes: quotes}
+func NewServer(
+	routes service.RouteProvider,
+	quotes domain.QuoteRepo,
+	trips domain.BookingRepo,
+) *Server {
+	return &Server{routes: routes, quotes: quotes, trips: trips}
 }
 
 func validCoordinate(c types.Coordinate) bool {

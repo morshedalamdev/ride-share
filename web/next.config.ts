@@ -17,6 +17,18 @@ export default function nextconfig(phase: string): NextConfig {
             source: "/api/trip/preview/",
             destination: "http://127.0.0.1:18081/trip/preview",
           },
+          {
+            source: "/api/trips/",
+            destination: "http://127.0.0.1:18081/trips",
+          },
+          {
+            source: "/api/trips/:id/",
+            destination: "http://127.0.0.1:18081/trips/:id",
+          },
+          {
+            source: "/api/trips/:id/cancel/",
+            destination: "http://127.0.0.1:18081/trips/:id/cancel",
+          },
         ];
       },
     };
